@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ProductStatus {
+  ACTIVE
+  SOLD
+  BLOCKED
+}
+
+enum ReportReason {
+  SCAM
+  ABUSE
+  PROHIBITED
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  passwordHash   String
+  role           Role      @default(USER)
+  blocked        Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  products       Product[] @relation("SellerProducts")
+  sentMessages   Message[] @relation("SentMessages")
+  inboxMessages  Message[] @relation("ReceivedMessages")
+  reportsMade    Report[]  @relation("Reporter")
+  reportsAgainst Report[]  @relation("ReportedUser")
+  sessions       Session[]
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  price       Int
+  category    String
+  location    String
+  imageUrl    String
+  status      ProductStatus @default(ACTIVE)
+  sellerId    String
+  seller      User          @relation("SellerProducts", fields: [sellerId], references: [id])
+  messages    Message[]
+  reports     Report[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, category])
+  @@index([sellerId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  body       String
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@index([receiverId])
+  @@index([senderId])
+  @@index([productId])
+}
+
+model Report {
+  id             String       @id @default(cuid())
+  reason         ReportReason
+  details        String
+  status         ReportStatus @default(OPEN)
+  productId      String?
+  product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  reporterId     String
+  reporter       User         @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUserId String?
+  reportedUser   User?        @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([status])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
