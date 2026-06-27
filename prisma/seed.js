@@ -48,22 +48,36 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@example.com" },
-    update: {},
+    update: { walletBalance: 500000 },
     create: {
       name: "관리자",
       email: "admin@example.com",
       passwordHash: adminPassword,
+      walletBalance: 500000,
       role: "ADMIN",
     },
   });
 
   const seller = await prisma.user.upsert({
     where: { email: "seller@example.com" },
-    update: {},
+    update: { walletBalance: 120000 },
     create: {
       name: "테스트 판매자",
       email: "seller@example.com",
       passwordHash: userPassword,
+      walletBalance: 120000,
+      role: "USER",
+    },
+  });
+
+  const buyer = await prisma.user.upsert({
+    where: { email: "buyer@example.com" },
+    update: { walletBalance: 280000 },
+    create: {
+      name: "안전 구매자",
+      email: "buyer@example.com",
+      passwordHash: userPassword,
+      walletBalance: 280000,
       role: "USER",
     },
   });
@@ -100,6 +114,26 @@ async function main() {
         details: "시세보다 과하게 낮은 가격으로 외부 결제를 유도한다는 신고입니다.",
         reporterId: seller.id,
         reportedUserId: admin.id,
+      },
+    });
+  }
+
+  const sampleTransfer = await prisma.transfer.findFirst({
+    where: {
+      senderId: buyer.id,
+      receiverId: seller.id,
+      memo: "직거래 전 예약금",
+    },
+    select: { id: true },
+  });
+
+  if (!sampleTransfer) {
+    await prisma.transfer.create({
+      data: {
+        amount: 10000,
+        memo: "직거래 전 예약금",
+        senderId: buyer.id,
+        receiverId: seller.id,
       },
     });
   }

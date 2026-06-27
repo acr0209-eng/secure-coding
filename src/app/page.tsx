@@ -48,6 +48,11 @@ export default async function Home({ searchParams }: HomeProps) {
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
+          {user ? (
+            <Link className="button-secondary" href="/wallet">
+              안전거래 금고
+            </Link>
+          ) : null}
           <Link className="button-primary" href="/sell">
             상품 등록
           </Link>
@@ -57,6 +62,21 @@ export default async function Home({ searchParams }: HomeProps) {
             </Link>
           )}
         </div>
+      </section>
+
+      <section className="mb-6 grid gap-3 md:grid-cols-3">
+        <FeatureTile
+          title="안전거래 금고"
+          body="구매자가 판매자에게 바로 송금하고, 상품 대금이면 자동으로 거래완료 처리됩니다."
+        />
+        <FeatureTile
+          title="신고 레이더"
+          body="의심 상품과 사용자는 신고 장부에 남고 관리자가 즉시 차단할 수 있습니다."
+        />
+        <FeatureTile
+          title="관리자 관제"
+          body="상품, 사용자, 신고, 송금 장부를 한 화면에서 확인하도록 구성했습니다."
+        />
       </section>
 
       <form className="panel mb-6 grid gap-3 p-4 md:grid-cols-[1fr_180px_auto]">
@@ -98,5 +118,14 @@ export default async function Home({ searchParams }: HomeProps) {
         </section>
       )}
     </main>
+  );
+}
+
+function FeatureTile({ title, body }: { title: string; body: string }) {
+  return (
+    <article className="rounded-md border border-emerald-100 bg-white p-4">
+      <h2 className="text-sm font-black text-neutral-950">{title}</h2>
+      <p className="mt-2 text-sm leading-6 text-neutral-600">{body}</p>
+    </article>
   );
 }

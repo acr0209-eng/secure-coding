@@ -10,7 +10,7 @@ import { formatDate, formatPrice } from "@/lib/format";
 export default async function AdminPage() {
   await requireAdmin();
 
-  const [users, products, reports] = await Promise.all([
+  const [users, products, reports, transfers] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
       select: {
@@ -19,6 +19,7 @@ export default async function AdminPage() {
         email: true,
         role: true,
         blocked: true,
+        walletBalance: true,
         createdAt: true,
       },
     }),
@@ -35,7 +36,18 @@ export default async function AdminPage() {
         reportedUser: { select: { name: true } },
       },
     }),
+    prisma.transfer.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        sender: { select: { name: true } },
+        receiver: { select: { name: true } },
+        product: { select: { title: true } },
+      },
+      take: 20,
+    }),
   ]);
+
+  const transferVolume = transfers.reduce((total, transfer) => total + transfer.amount, 0);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
@@ -48,6 +60,8 @@ export default async function AdminPage() {
         <StatCard label="사용자" value={users.length} />
         <StatCard label="상품" value={products.length} />
         <StatCard label="열린 신고" value={reports.length} />
+        <StatCard label="송금 장부" value={transfers.length} />
+        <StatCard label="총 송금액" value={formatPrice(transferVolume)} />
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
@@ -62,6 +76,9 @@ export default async function AdminPage() {
                     <p className="text-sm text-neutral-500">{user.email}</p>
                     <p className="mt-1 text-xs font-bold text-neutral-500">
                       {user.role} · {formatDate(user.createdAt)}
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-emerald-700">
+                      잔액 {formatPrice(user.walletBalance)}
                     </p>
                   </div>
                   <form action={toggleUserBlock}>
@@ -112,6 +129,36 @@ export default async function AdminPage() {
       </section>
 
       <section className="panel mt-6 p-5">
+        <h2 className="text-xl font-black text-neutral-950">송금 장부</h2>
+        <div className="mt-4 table-grid">
+          {transfers.length ? (
+            transfers.map((transfer) => (
+              <article
+                className="grid gap-4 rounded-md border border-neutral-200 bg-white p-4 md:grid-cols-[1fr_auto] md:items-center"
+                key={transfer.id}
+              >
+                <div>
+                  <h3 className="font-black text-neutral-950">
+                    {transfer.sender.name} → {transfer.receiver.name}
+                  </h3>
+                  <p className="mt-1 text-sm text-neutral-600">{transfer.memo}</p>
+                  <p className="mt-1 text-xs font-bold text-neutral-500">
+                    {transfer.product ? `상품 ${transfer.product.title} · ` : ""}
+                    {formatDate(transfer.createdAt)}
+                  </p>
+                </div>
+                <p className="text-lg font-black text-emerald-700">
+                  {formatPrice(transfer.amount)}
+                </p>
+              </article>
+            ))
+          ) : (
+            <p className="text-sm text-neutral-500">송금 내역이 없습니다.</p>
+          )}
+        </div>
+      </section>
+
+      <section className="panel mt-6 p-5">
         <h2 className="text-xl font-black text-neutral-950">상품 관리</h2>
         <div className="mt-4 table-grid">
           {products.map((product) => (
@@ -144,7 +191,7 @@ export default async function AdminPage() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="panel p-5">
       <p className="text-sm font-bold text-neutral-500">{label}</p>

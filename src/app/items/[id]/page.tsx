@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { markProductSold, reportProduct, sendMessage } from "@/app/actions";
+import { markProductSold, reportProduct, sendMessage, transferMoney } from "@/app/actions";
 import { currentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { formatDate, formatPrice } from "@/lib/format";
@@ -11,6 +11,7 @@ type ItemProps = {
   }>;
   searchParams?: Promise<{
     sent?: string;
+    paid?: string;
     reported?: string;
     error?: string;
   }>;
@@ -51,6 +52,7 @@ export default async function ItemPage({ params, searchParams }: ItemProps) {
       </Link>
 
       {flags?.sent ? <p className="notice mb-5">문의가 판매자에게 전달되었습니다.</p> : null}
+      {flags?.paid ? <p className="notice mb-5">안전송금이 완료되었습니다.</p> : null}
       {flags?.reported ? <p className="notice mb-5">신고가 접수되었습니다.</p> : null}
       {flags?.error ? <p className="notice mb-5">요청을 처리하지 못했습니다.</p> : null}
 
@@ -116,6 +118,62 @@ export default async function ItemPage({ params, searchParams }: ItemProps) {
               </Link>
             )}
           </section>
+
+          {!isOwner ? (
+            <section className="panel p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black uppercase tracking-[0.14em] text-emerald-700">
+                    Vault Pay
+                  </p>
+                  <h2 className="mt-1 text-lg font-black text-neutral-950">안전송금</h2>
+                </div>
+                {user ? (
+                  <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-600">
+                    잔액 {formatPrice(user.walletBalance)}
+                  </span>
+                ) : null}
+              </div>
+              {user ? (
+                <form action={transferMoney} className="mt-4 space-y-3">
+                  <input name="productId" type="hidden" value={product.id} />
+                  <input name="receiverId" type="hidden" value={product.sellerId} />
+                  <label>
+                    <span className="mb-1 block text-sm font-bold text-neutral-700">송금액</span>
+                    <input
+                      className="input"
+                      defaultValue={product.price}
+                      min={1000}
+                      name="amount"
+                      required
+                      step={1000}
+                      type="number"
+                    />
+                  </label>
+                  <label>
+                    <span className="mb-1 block text-sm font-bold text-neutral-700">메모</span>
+                    <input
+                      className="input"
+                      defaultValue={`${product.title} 안전거래`}
+                      maxLength={120}
+                      name="memo"
+                    />
+                  </label>
+                  <button
+                    className="button-primary"
+                    disabled={user.blocked || product.status !== "ACTIVE"}
+                    type="submit"
+                  >
+                    판매자에게 송금
+                  </button>
+                </form>
+              ) : (
+                <Link className="button-primary mt-4" href="/auth/login">
+                  로그인 후 송금
+                </Link>
+              )}
+            </section>
+          ) : null}
 
           <section className="panel p-5">
             <h2 className="text-lg font-black text-neutral-950">신고</h2>

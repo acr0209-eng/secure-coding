@@ -30,21 +30,29 @@ enum ReportStatus {
   RESOLVED
 }
 
+enum TransferStatus {
+  COMPLETED
+  BLOCKED
+}
+
 model User {
-  id             String    @id @default(cuid())
-  name           String
-  email          String    @unique
-  passwordHash   String
-  role           Role      @default(USER)
-  blocked        Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  products       Product[] @relation("SellerProducts")
-  sentMessages   Message[] @relation("SentMessages")
-  inboxMessages  Message[] @relation("ReceivedMessages")
-  reportsMade    Report[]  @relation("Reporter")
-  reportsAgainst Report[]  @relation("ReportedUser")
-  sessions       Session[]
+  id                String     @id @default(cuid())
+  name              String
+  email             String     @unique
+  passwordHash      String
+  walletBalance     Int        @default(0)
+  role              Role       @default(USER)
+  blocked           Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  products          Product[]  @relation("SellerProducts")
+  sentMessages      Message[]  @relation("SentMessages")
+  inboxMessages     Message[]  @relation("ReceivedMessages")
+  sentTransfers     Transfer[] @relation("SentTransfers")
+  receivedTransfers Transfer[] @relation("ReceivedTransfers")
+  reportsMade       Report[]   @relation("Reporter")
+  reportsAgainst    Report[]   @relation("ReportedUser")
+  sessions          Session[]
 }
 
 model Product {
@@ -60,6 +68,7 @@ model Product {
   seller      User          @relation("SellerProducts", fields: [sellerId], references: [id])
   messages    Message[]
   reports     Report[]
+  transfers   Transfer[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -98,6 +107,25 @@ model Report {
   updatedAt      DateTime     @updatedAt
 
   @@index([status])
+}
+
+model Transfer {
+  id         String         @id @default(cuid())
+  amount     Int
+  memo       String
+  status     TransferStatus @default(COMPLETED)
+  productId  String?
+  product    Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  senderId   String
+  sender     User           @relation("SentTransfers", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User           @relation("ReceivedTransfers", fields: [receiverId], references: [id])
+  createdAt  DateTime       @default(now())
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([productId])
+  @@index([createdAt])
 }
 
 model Session {

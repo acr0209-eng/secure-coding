@@ -15,6 +15,9 @@ export default async function RegisterPage({ searchParams }: RegisterProps) {
       <section className="panel w-full p-6">
         <p className="text-sm font-black uppercase tracking-[0.16em] text-emerald-700">Join</p>
         <h1 className="mt-2 text-2xl font-black text-neutral-950">회원가입</h1>
+        <p className="mt-2 text-sm text-neutral-600">
+          가입하면 안전송금 테스트용 금고 잔액 100,000원이 지급됩니다.
+        </p>
         {params?.error ? <p className="notice mt-4">{message(params.error)}</p> : null}
         <form action={registerUser} className="mt-6 space-y-4">
           <label className="block">

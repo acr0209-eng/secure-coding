@@ -10,6 +10,7 @@ type AuthUser = {
   id: string;
   name: string;
   email: string;
+  walletBalance: number;
   role: "USER" | "ADMIN";
   blocked: boolean;
 };
@@ -97,6 +98,7 @@ export async function currentUser(): Promise<AuthUser | null> {
     id: session.user.id,
     name: session.user.name,
     email: session.user.email,
+    walletBalance: session.user.walletBalance,
     role: session.user.role,
     blocked: session.user.blocked,
   };

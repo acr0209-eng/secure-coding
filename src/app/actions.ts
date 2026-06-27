@@ -32,6 +32,7 @@ export async function registerUser(formData: FormData) {
       name,
       email,
       passwordHash,
+      walletBalance: 100000,
     },
   });
 
@@ -135,6 +136,122 @@ export async function sendMessage(formData: FormData) {
 
   revalidatePath(`/items/${productId}`);
   redirect(`/items/${productId}?sent=1`);
+}
+
+export async function transferMoney(formData: FormData) {
+  const user = await requireUser();
+  const productId = coerceText(formData.get("productId"), 60);
+  const amount = coercePrice(formData.get("amount"));
+  const memo = coerceText(formData.get("memo"), 120) || "안전거래 송금";
+  let receiverId = coerceText(formData.get("receiverId"), 60);
+  const returnPath = productId ? `/items/${productId}` : "/wallet";
+
+  if (user.blocked || amount === null || amount < 1000) {
+    redirect(`${returnPath}?error=transfer`);
+  }
+
+  const product = productId
+    ? await prisma.product.findUnique({
+        where: { id: productId },
+        select: {
+          id: true,
+          title: true,
+          price: true,
+          sellerId: true,
+          status: true,
+        },
+      })
+    : null;
+
+  if (productId && !product) {
+    redirect("/");
+  }
+
+  if (product) {
+    if (product.status !== "ACTIVE" || product.sellerId === user.id) {
+      redirect(`${returnPath}?error=transfer`);
+    }
+
+    receiverId = product.sellerId;
+  }
+
+  if (!receiverId || receiverId === user.id) {
+    redirect(`${returnPath}?error=transfer`);
+  }
+
+  const receiver = await prisma.user.findUnique({
+    where: { id: receiverId },
+    select: { id: true, blocked: true },
+  });
+
+  if (!receiver || receiver.blocked) {
+    redirect(`${returnPath}?error=transfer`);
+  }
+
+  let transferError: "insufficient" | "transfer" | null = null;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const debit = await tx.user.updateMany({
+        where: {
+          id: user.id,
+          blocked: false,
+          walletBalance: { gte: amount },
+        },
+        data: {
+          walletBalance: { decrement: amount },
+        },
+      });
+
+      if (debit.count !== 1) {
+        throw new Error("INSUFFICIENT");
+      }
+
+      await tx.user.update({
+        where: { id: receiverId },
+        data: {
+          walletBalance: { increment: amount },
+        },
+      });
+
+      await tx.transfer.create({
+        data: {
+          amount,
+          memo,
+          productId: product?.id,
+          senderId: user.id,
+          receiverId,
+        },
+      });
+
+      if (product && amount >= product.price) {
+        await tx.product.update({
+          where: { id: product.id },
+          data: { status: "SOLD" },
+        });
+      }
+    });
+  } catch (error) {
+    transferError =
+      error instanceof Error && error.message === "INSUFFICIENT"
+        ? "insufficient"
+        : "transfer";
+  }
+
+  if (transferError) {
+    redirect(`${returnPath}?error=${transferError}`);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/wallet");
+  revalidatePath("/admin");
+
+  if (productId) {
+    revalidatePath(`/items/${productId}`);
+    redirect(`/items/${productId}?paid=1`);
+  }
+
+  redirect("/wallet?sent=1");
 }
 
 export async function reportProduct(formData: FormData) {

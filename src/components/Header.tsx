@@ -25,6 +25,11 @@ export async function Header() {
           <Link className="nav-link" href="/sell">
             판매하기
           </Link>
+          {user ? (
+            <Link className="nav-link" href="/wallet">
+              지갑
+            </Link>
+          ) : null}
           {user?.role === "ADMIN" ? (
             <Link className="nav-link" href="/admin">
               관리자
