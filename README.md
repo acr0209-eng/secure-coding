@@ -39,6 +39,35 @@
 - Prisma
 - Tailwind CSS
 
+## 환경 설정
+
+필요한 프로그램:
+
+- Node.js
+- npm
+- Git
+
+프로젝트 루트에서 `.env.example`을 참고해 `.env` 파일을 만듭니다.
+
+```bash
+cp .env.example .env
+```
+
+Windows PowerShell에서는 아래 명령을 사용할 수 있습니다.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+기본 개발 환경 값:
+
+```env
+DATABASE_URL="file:./dev.db"
+SESSION_SECRET="replace-with-a-long-random-secret"
+```
+
+`DATABASE_URL`은 Prisma가 사용할 SQLite 파일 위치입니다. `SESSION_SECRET`은 세션 토큰 해시에 사용하는 값이므로 실제 배포 환경에서는 긴 랜덤 문자열로 교체해야 합니다.
+
 ## 실행 방법
 
 ```bash
