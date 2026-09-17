@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CAU Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="login-box">
+    <h1>CAU Login</h1>
+    <p id="error-msg">Wrong ID or password.</p>
+
+    <form id="login-form" action="/login" method="POST">
+      <label for="userid">Student ID</label>
+      <input type="text" id="userid" name="userid"
+             placeholder="20261234" required>
+
+      <label for="userpw">Password</label>
+      <input type="password" id="userpw" name="userpw"
+             placeholder="Password" required>
+
+      <button type="submit">Log in</button>
+    </form>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
