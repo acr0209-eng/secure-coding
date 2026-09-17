@@ -1,28 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CAU Login</title>
+  <meta name="theme-color" content="#071d45">
+  <title>중앙대학교 산업보안학과 로그인</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="login-box">
-    <h1>CAU Login</h1>
-    <p id="error-msg">Wrong ID or password.</p>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="중앙대학교 산업보안학과 홈">
+        <span class="brand-mark" aria-hidden="true">CAU</span>
+        <span class="brand-divider" aria-hidden="true"></span>
+        <span class="brand-name">
+          <strong>중앙대학교</strong>
+          <span>산업보안학과</span>
+        </span>
+      </a>
 
-    <form id="login-form" action="/login" method="POST">
-      <label for="userid">Student ID</label>
-      <input type="text" id="userid" name="userid"
-             placeholder="20261234" required>
+      <div class="header-actions" aria-label="상단 메뉴">
+        <span class="header-login">LOGIN</span>
+        <span class="language"><span aria-hidden="true">◎</span> EN</span>
+        <button class="menu-button" type="button" aria-label="메뉴 열기">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <em>MENU</em>
+        </button>
+      </div>
+    </header>
 
-      <label for="userpw">Password</label>
-      <input type="password" id="userpw" name="userpw"
-             placeholder="Password" required>
+    <main class="hero">
+      <div class="grid-overlay" aria-hidden="true"></div>
+      <section class="hero-copy" aria-labelledby="hero-title">
+        <p class="eyebrow">DEPARTMENT OF INDUSTRIAL SECURITY</p>
+        <p class="intro">대한민국 최초 산업보안 인재의 시작,<br>융복합 보안으로 산업의 미래를 설계하다</p>
+        <h1 id="hero-title">중앙대학교<br>산업보안학과입니다</h1>
+        <div class="hero-rule" aria-hidden="true"></div>
+        <p class="hero-en">DEPARTMENT<br>OF INDUSTRIAL SECURITY</p>
+      </section>
 
-      <button type="submit">Log in</button>
-    </form>
-  </main>
+      <section class="login-panel" aria-labelledby="login-title">
+        <div class="panel-heading">
+          <p>CAU SECURITY PORTAL</p>
+          <h2 id="login-title">로그인</h2>
+          <span>중앙대학교 산업보안학과 통합 포털</span>
+        </div>
+
+        <p id="error-msg" role="alert">아이디 또는 비밀번호를 확인해주세요.</p>
+
+        <form id="login-form" action="/login" method="POST">
+          <label for="userid">학번 / 아이디</label>
+          <input type="text" id="userid" name="userid" placeholder="Student ID" autocomplete="username" required>
+
+          <label for="userpw">비밀번호</label>
+          <input type="password" id="userpw" name="userpw" placeholder="Password" autocomplete="current-password" required>
+
+          <div class="form-options">
+            <label class="remember-option">
+              <input type="checkbox" name="remember">
+              <span>아이디 저장</span>
+            </label>
+            <a href="#">비밀번호 찾기</a>
+          </div>
+
+          <button class="submit-button" type="submit">
+            <span>로그인</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </form>
+
+        <p class="panel-note">허가된 사용자만 접속할 수 있습니다.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <strong>INDUSTRIAL SECURITY</strong>
+        <span>미래 산업을 지키는 융합형 보안 인재</span>
+      </div>
+      <div>
+        <strong>SECURE CAMPUS</strong>
+        <span>안전한 교육과 연구를 위한 통합 포털</span>
+      </div>
+      <div>
+        <strong>CHUNG-ANG UNIVERSITY</strong>
+        <span>서울특별시 동작구 흑석로 84</span>
+      </div>
+    </footer>
+
+    <aside class="quick-menu" aria-label="빠른 메뉴">
+      <span aria-hidden="true">＋</span>
+      <strong>QUICK MENU</strong>
+    </aside>
+  </div>
 
   <script src="script.js"></script>
 </body>
